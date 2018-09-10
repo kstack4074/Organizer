@@ -1,0 +1,5 @@
+build
+.venv
+.eggs
+dist
+src.egg-info
