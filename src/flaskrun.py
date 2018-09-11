@@ -1,7 +1,7 @@
 import optparse
 
 
-def flaskrun(app, default_host="0.0.0.0", default_port="80"):
+def flaskrun(app, default_host="0.0.0.0", default_port="8000", default_debug = True):
     """
     Takes a flask.Flask instance and runs it. Parses
     command-line flags to configure the app.
@@ -19,7 +19,8 @@ def flaskrun(app, default_host="0.0.0.0", default_port="80"):
                       default=default_port)
     parser.add_option("-d", "--debug",
                       action="store_true", dest="debug",
-                      help=optparse.SUPPRESS_HELP)
+                      help=optparse.SUPPRESS_HELP,
+                      default = default_debug)
 
     options, _ = parser.parse_args()
 
