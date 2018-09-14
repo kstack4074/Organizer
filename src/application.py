@@ -17,33 +17,61 @@ def post():
 
 @application.route('/fetchall', methods = ['GET'])
 def get_everything():
-    table = DynamoTable('Organizer')
-    return Response(json.dumps({'Words': table.getEverything()}), mimetype = 'application/json', status = 200)
-
-@application.route('/update', methods = ['POST'])
-def update_item():
-    table = DynamoTable('Organizer')
-    response = table.updateItem('Bike', 'Test1', {'Test2Key': 'Test2Val'})
-    return Response(json.dumps(response, status = 200))
+    table = DynamoTable('Bike')
+    return Response(json.dumps({'Words': table.get_everything()}), mimetype = 'application/json', status = 200)
 
 @application.route('/create', methods = ['POST'])
 def create_item():
-    req_dict = request.data
-    req_dict = json.loads(req_dict)
+    '''
+    Application route to handle the creation of new elements in the database.
+    This includes new rows (new key value) and new sub-fields in the nested
+    document structure.
 
-    table_name = req_dict.get("Type")
-    asset_table = DynamoTable("Asset")
-    
-    #Check if table name is real
-    if table_name == None:
-        #Bad request
-        print("Bad request")
+    New row is identifiable by 'Path' containing no '.'
+    '''
+    request_data = json.loads(request.data)
 
-    table_info = req_dict.get("Info")
+    table_name = request_data.get("Type")
     table = DynamoTable(table_name)
-    table.create_item(table_info)
-    return Response(json.dumps(table_info))
+    table_info = request_data.get("Info")
+    reponse = table.create_item(table_info["Path"], table_info["Value"])
+    return Response(json.dumps(table_info), mimetype = 'application/json', status = 200)
 
+@application.route('/read', methods = ['POST'])
+def read_item():
+    request_data = json.loads(request.data)
+    table_name = request_data.get("Type")
+    table = DynamoTable(table_name)
+    table_info = request_data.get("Info")
+    path = table_info["Path"]
+
+    item = table.read_item(path)
+    return Response(json.dumps(item), mimetype = 'application/json', status = 200)
+
+@application.route('/update', methods = ['POST'])
+def update_item():
+    #Update Item needs to be able to:
+    #   1. change the name of a record
+    #   2. change the value of a record
+    #   3. change the type of a record
+    request_data = json.loads(request.data)
+    table_name = request_data.get("Type")
+    #Assume the table exists for now
+    table = DynamoTable(table_name)
+    table_info = request_data.get("Info")
+
+    response = table.update_element(table_info["Path"], table_info["Value"])
+    return Response(json.dumps(response), mimetype = 'application/json', status = 200)
+
+@application.route('/delete', methods = ['POST'])
+def delete_item():
+    request_data = json.loads(request.data)
+    table_name = request_data.get("Type")
+    table = DynamoTable(table_name)
+    table_info = request_data.get("Info")
+    path = table_info["Path"]
+
+    response = table.delete_element(table_info["Path"])
 
 if __name__ == '__main__':
     flaskrun(application)
