@@ -3,3 +3,4 @@ build
 .eggs
 dist
 src.egg-info
+.vscode*
