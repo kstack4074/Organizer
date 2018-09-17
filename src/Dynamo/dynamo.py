@@ -11,11 +11,23 @@ class DynamoTable:
 
     def create_item(self, path, value):
         split_path = path.split('.')
+        table_key = split_path[0]
         path_length = len(split_path)
         if path_length == 1:
             item = {'Key': path}
             item.update(value)
             self.table.put_item(Item = item)
+        elif path_length == 2:
+            response = self.table.update_item(
+            Key = {
+                'Key': table_key 
+            },
+            UpdateExpression = "set " + split_path[1] + " = :v",
+            ExpressionAttributeValues = {
+                ':v': value    
+            },
+            ReturnValues = "UPDATED_NEW"
+        )
         else:
             #Read what already exists
             new_key = split_path[-1]
@@ -28,7 +40,7 @@ class DynamoTable:
                 existing_value.update({new_key: value})
             #Update the database value with the new value object
             self.update_element('.'.join(existing_path), existing_value)
-
+            
     def read_item(self, path):
         split_path = path.split('.')
         table_key = split_path[0]
